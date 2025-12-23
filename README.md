@@ -1,5 +1,5 @@
 # vrpoprob
-Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data
+**V**ariable **r**esponse **p**ropensity model with **o**rdered **prob**it
 ***************************************************************************************************************
 *** README                                                                         			    ***
 *** Replication file for: Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data ***
@@ -19,7 +19,8 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
 
 #### TABLE OF CONTENTS
 
-`run_all.R` - runs all the scripts in the replication
+* `run_all.R` - runs all the scripts in the replication, if `calculate_results` is set to `FALSE`, then instead of running `calc_results.R`, results are loaded from `results.RData`
+* `README.md` - this file
 
 * `data` folder:
   * `anes_timeseries_2024_csv_20250219.csv` dataset from ANES 2025
@@ -29,11 +30,27 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
   * `load_data.R` loads the data
   * `calc_weights.R` calculate sampling weights
   * `vrpoprob.R` contains the functions necessary for estimating the model
-  * `calc_results.R` perform all the calculations, replicates all the
+    * **Main functions**
+      * `vrpoprob_estim(ydata, rdata, xdata, zdata, Nmiss, WXpop, Xpop, WZpop, Zpop)`  Main estimation routine. Returns estimated parameters (`alpha`, `beta`, `lambda`, `theta`, `rho`), standard errors, and estimated population proportions (`pphat`, `pphat_nonresp`, `pphat_resp`).
+      * `vrpoprob_simdata(N, alpha, beta, lambda, theta, rho, WXpop, Xpop)`   Simulates dataset of size `N` including nonresponses. Returns `ydata`, `rdata`, `xdata`, `zdata`, `Nmiss`
+    * **Internal / helper functions**
+      * `vrpoprob_pack(alpha, beta, lambda, theta, rho)` – packs parameters into a single vector.  
+      * `vrpoprob_unpack(xi, J, K, M, R)` – unpacks parameter vector into `alpha`, `beta`, `lambda`, `theta`, `rho`.  
+      * `vrpoprob_eval_yrlogp(y, r, ystarhat, rstarhat, lambda, theta, rho)` – evaluates log-probability of `(y, r)` conditional on `(x, z)`.  
+      * `vrpoprob_eval_npunc(beta, WZpop, Zpop)` – evaluates unconditional log-probability of nonresponse.  
+      * `vrpoprob_loglik(xi, ydata, rdata, xdata, zdata, Nmiss, WZpop, Zpop)` – computes the full log-likelihood.  
+      * `vrpoprob_sim1obs(alpha, beta, lambda, theta, rho, WXpop, Xpop)` – simulates a single observation.  
+      * `vrpoprob_xi_to_pphat(xi, WXpop, Xpop, J, K, M, R)` – computes population outcome proportions from parameters.  
+      * `vrpoprob_delta_se(f, x, V)` – delta-method computation of standard errors.  
+      * `vrpoprob_xi_to_pphat_resp_nonresp(xi, WXpop, Xpop, Zpop, J, K, M, R)` – computes population proportions separately for respondents and nonrespondents.
+  * `calc_results.R` perform all the calculations, replicates all the results used in the paper. It takes about ~6hrs on M1PRO 2021 16GB RAM laptop.
   * `plot_results.R` creates all the figures in the paper and saves them to `plots` folder
 
+* `results` folder:
+  * `results.RData` file with results of the replication
+
 * `plots` folder:
-  * `XXX.pdf` Figure 1
+  * `XXX.pdf` Distribution of the response variable *Rating of interview* Figure 1
   * `response_life_all.pdf`, `life_all.pdf`, `response_comp_life_all.pdf` Figure 2
   * `response_economy_all.pdf`, `economy_all.pdf`, `response_comp_economy_all.pdf` Figure 3
   * `response_unemployment_all.pdf`, `unemployment_all.pdf`, `response_comp_unemployment_all.pdf` Figure 4 (Question 3)
@@ -42,7 +59,6 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
   * `response_religion_all.pdf`, `religion_all.pdf`, `response_comp_religion_all.pdf` Figure 7 (Question 6)
   * `response_abortions_all.pdf`, `abortions_all.pdf`, `response_comp_abortions_all.pdf` Figure 8 (Question 7)
   * `response_death_all.pdf`, `death_all.pdf`, `response_comp_death_all.pdf` Figure 9 (Question 8)
-
 
 
 #######################################################################################
