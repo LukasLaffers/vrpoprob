@@ -64,6 +64,7 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
 
 All scripts were run under the following environment:
 
+```text
 R version 4.4.2 (2024-10-31)
 Platform: aarch64-apple-darwin20
 Running under: macOS 26.2
@@ -82,8 +83,10 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 loaded via a namespace (and not attached):
- [1] colorspace_2.1-1  scales_1.3.0      compiler_4.4.2    R6_2.6.1          cli_3.6.4         tools_4.4.2       glue_1.8.0        rstudioapi_0.17.1
- [9] lifecycle_1.0.4   munsell_0.5.1     rlang_1.1.5      
+ [1] colorspace_2.1-1   scales_1.3.0       compiler_4.4.2     R6_2.6.1           cli_3.6.4         
+ [6] tools_4.4.2        glue_1.8.0         rstudioapi_0.17.1  lifecycle_1.0.4    munsell_0.5.1     
+[11] rlang_1.1.5        
+```
 
 
 #### REFERENCES
