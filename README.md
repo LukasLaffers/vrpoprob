@@ -4,7 +4,7 @@
 *** README                                                                         			    ***
 *** Replication file for: Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data ***
 ***         							                    			    ***
-*** Version: 0.6 (January 21, 2025)                                                        			    ***
+*** Version: 0.6 (January 21, 2026)                                                        			    ***
 ***************************************************************************************************************
 
 
