@@ -20,9 +20,9 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
 * `run_all.R` - runs all the scripts in the replication, if `calculate_results` is set to `FALSE`, then instead of running `calc_results.R`, results are loaded from `results.RData`
 * `README.md` - this file
 
-* `data` folder:
-  * `anes_timeseries_2024_csv_20250219.csv` dataset from ANES 2025
-  * `anes_timeseries_2024_userguidecodebook_20250219.pdf` codebook from ANES 2025
+* `data` folder (this can be freely from [www.electionstudies.org](https://electionstudies.org/data-center/2024-time-series-study/)):
+  * `anes_timeseries_2024_csv_20250219.csv` dataset from ANES 2025 (version 19 Feb 2025)
+  * `anes_timeseries_2024_userguidecodebook_20250219.pdf` codebook from ANES 2025 (version 19 Feb 2025)
 
 * `code` folder:
   * `load_data.R` loads the data
