@@ -4,7 +4,7 @@
 *** README                                                                         			    ***
 *** Replication file for: Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data ***
 ***         							                    			    ***
-*** Version: 0.6 (December 23, 2025)                                                        			    ***
+*** Version: 0.6 (January 21, 2025)                                                        			    ***
 ***************************************************************************************************************
 
 
@@ -41,7 +41,7 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
       * `vrpoprob_xi_to_pphat(xi, WXpop, Xpop, J, K, M, R)` – computes population outcome proportions from parameters.  
       * `vrpoprob_delta_se(f, x, V)` – delta-method computation of standard errors.  
       * `vrpoprob_xi_to_pphat_resp_nonresp(xi, WXpop, Xpop, Zpop, J, K, M, R)` – computes population proportions separately for respondents and nonrespondents.
-  * `calc_results.R` perform all the calculations, replicates all the results used in the paper. It takes about ~6hrs on M1PRO 2021 16GB RAM laptop.
+  * `calc_results.R` perform all the calculations, replicates all the results used in the paper. It takes about ~5min on M1PRO 2021 16GB RAM laptop.
   * `plot_results.R` creates all the figures in the paper and saves them to `plots` folder
 
 * `results` folder:
@@ -82,10 +82,22 @@ tzcode source: internal
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
+other attached packages:
+ [1] maxLik_1.5-2.1      miscTools_0.6-28    mnorm_1.2.2         numDeriv_2016.8-1.1 latex2exp_0.9.6    
+ [6] RColorBrewer_1.1-3  lubridate_1.9.4     forcats_1.0.0       stringr_1.5.1       dplyr_1.1.4        
+[11] purrr_1.0.4         tidyr_1.3.1         tibble_3.2.1        tidyverse_2.0.0     scales_1.3.0       
+[16] ggtext_0.1.2        ggplot2_3.5.2       readr_2.1.5         tictoc_1.2.1       
+
 loaded via a namespace (and not attached):
- [1] colorspace_2.1-1   scales_1.3.0       compiler_4.4.2     R6_2.6.1           cli_3.6.4         
- [6] tools_4.4.2        glue_1.8.0         rstudioapi_0.17.1  lifecycle_1.0.4    munsell_0.5.1     
-[11] rlang_1.1.5        
+ [1] sandwich_3.1-1      generics_0.1.3      xml2_1.3.8          stringi_1.8.4       lattice_0.22-6     
+ [6] hms_1.1.3           digest_0.6.37       magrittr_2.0.3      grid_4.4.2          timechange_0.3.0   
+[11] httr_1.4.7          cli_3.6.4           crayon_1.5.3        rlang_1.1.5         commonmark_1.9.5   
+[16] bit64_4.6.0-1       munsell_0.5.1       withr_3.0.2         parallel_4.4.2      tools_4.4.2        
+[21] tzdb_0.5.0          colorspace_2.1-1    hpa_1.3.3           vctrs_0.6.5         R6_2.6.1           
+[26] zoo_1.8-13          lifecycle_1.0.4     bit_4.6.0           vroom_1.6.5         pkgconfig_2.0.3    
+[31] RcppParallel_5.1.10 pillar_1.10.1       gtable_0.3.6        glue_1.8.0          Rcpp_1.0.14        
+[36] xfun_0.51           tidyselect_1.2.1    rstudioapi_0.17.1   farver_2.1.2        labeling_0.4.3     
+[41] compiler_4.4.2      markdown_1.13       gridtext_0.1.5    
 ```
 
 
