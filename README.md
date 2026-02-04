@@ -30,14 +30,12 @@ The raw data is from ANES (2025), which is available on the [www.electionstudies
   * `vrpoprob.R` contains the functions necessary for estimating the model
     * **Main functions**
       * `vrpoprob_estim(ydata, rdata, xdata, zdata, Nmiss, WXpop, Xpop, WZpop, Zpop)`  Main estimation routine. Returns estimated parameters (`alpha`, `beta`, `lambda`, `theta`, `rho`), standard errors, and estimated population proportions (`pphat`, `pphat_nonresp`, `pphat_resp`).
-      * `vrpoprob_simdata(N, alpha, beta, lambda, theta, rho, WXpop, Xpop)`   Simulates dataset of size `N` including nonresponses. Returns `ydata`, `rdata`, `xdata`, `zdata`, `Nmiss`
     * **Internal / helper functions**
       * `vrpoprob_pack(alpha, beta, lambda, theta, rho)` – packs parameters into a single vector.  
       * `vrpoprob_unpack(xi, J, K, M, R)` – unpacks parameter vector into `alpha`, `beta`, `lambda`, `theta`, `rho`.  
       * `vrpoprob_eval_yrlogp(y, r, ystarhat, rstarhat, lambda, theta, rho)` – evaluates log-probability of `(y, r)` conditional on `(x, z)`.  
       * `vrpoprob_eval_npunc(beta, WZpop, Zpop)` – evaluates unconditional log-probability of nonresponse.  
       * `vrpoprob_loglik(xi, ydata, rdata, xdata, zdata, Nmiss, WZpop, Zpop)` – computes the full log-likelihood.  
-      * `vrpoprob_sim1obs(alpha, beta, lambda, theta, rho, WXpop, Xpop)` – simulates a single observation.  
       * `vrpoprob_xi_to_pphat(xi, WXpop, Xpop, J, K, M, R)` – computes population outcome proportions from parameters.  
       * `vrpoprob_delta_se(f, x, V)` – delta-method computation of standard errors.  
       * `vrpoprob_xi_to_pphat_resp_nonresp(xi, WXpop, Xpop, Zpop, J, K, M, R)` – computes population proportions separately for respondents and nonrespondents.
