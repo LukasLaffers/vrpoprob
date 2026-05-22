@@ -1,104 +1,98 @@
 # vrpoprob
-**V**ariable **r**esponse **p**ropensity model with **o**rdered **prob**it
-***************************************************************************************************************
-*** README                                                                         			    ***
-*** Replication file for: Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data ***
-***         							                    			    ***
-*** Version: 0.6 (January 21, 2026)                                                        			    ***
-***************************************************************************************************************
+
+**V**ariable **r**esponse **p**ropensity model with **o**rdered **prob**it.
+
+Replication package for *Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data*.
+
+Version 1.1 (May 2026).
+
+The raw data is from the 2024 ANES Time Series Study, available at
+[electionstudies.org](https://electionstudies.org/data-center/2024-time-series-study/).
+`run_all.R` runs all scripts in the correct order.
 
 
-#### NOTES
+## Layout
 
-Welcome to the replication package for "Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data", encompassing the data, code, and documentation. This README provides detailed information on the  dataset, software environment, and reproducibility instructions. This replication repository generates the analysis and figures used in the paper and supplemental materials. The script `run_all.R` runs all scripts in the correct order. 
+```
+run_all.R                 entry point; toggles main / appendix C / appendix D
+README.md                 this file
+data/                     ANES 2024 csv + codebook
+code/                     scripts (see below)
+results/                  generated .RData and .csv (created on run)
+plots/                    generated figures (created on run)
+```
 
-The raw data is from ANES (2025), which is available on the [www.electionstudies.org](https://electionstudies.org/data-center/2024-time-series-study/).
+### `run_all.R` switches
+
+| flag       | default | what it controls                                              |
+|------------|---------|---------------------------------------------------------------|
+| `run_main` | `TRUE`  | main ANES estimation. If `FALSE`, loads cached `results.RData` |
+| `run_appC` | `TRUE`  | Monte Carlo simulation (Appendix C)                            |
+| `run_appD` | `TRUE`  | web-only robustness with `IW_ONLINE` exclusion (Appendix D)    |
+
+### `code/`
+
+| file                    | purpose                                                                                  |
+|-------------------------|------------------------------------------------------------------------------------------|
+| `vrpoprob.R`            | the estimator (`vrpoprob_estim`) and its internal helpers                                |
+| `config.R`              | shared outcome list, labels, and the nonresponse grid `{0.5, 0.65, 0.8}`                 |
+| `load_data.R`           | reads the ANES csv and constructs `dff3` with renamed columns and basic filters          |
+| `calc_weights.R`        | builds the `(X, W)` population grid from demographics                                    |
+| `calc_results.R`        | runs `vrpoprob_estim` for all 8 outcomes × 3 nonresponse rates → `results/results.RData` and `results/summary_table.csv` |
+| `plot_results.R`        | per-outcome bar plots and respondent/nonrespondent decomposition figures                 |
+| `simulation_appC.R`     | Monte Carlo: 8 outcomes × 3 ρ × 3 p_miss × 500 reps; writes `simulation.RData`, `simulation_table1.csv`, `simulation_table2.csv` |
+| `calc_weights_appD.R`   | population grids for the web subsample, with and without `online`                        |
+| `calc_results_appD.R`   | web-only baseline (`Z = X`) and exclusion (`Z = X ∪ {online}`) → `results_web.RData`     |
+| `plot_results_appD.R`   | web-robustness figures and `rho_web_comparison.csv`                                      |
+
+### Top-level functions in `vrpoprob.R`
+
+| function                                                                  | role                                                                                  |
+|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| `vrpoprob_estim = function(ydata, rdata, xdata, zdata, Nmiss, Wpop, Xpop, Zpop)` | full estimation; returns `alpha`, `beta`, `lambda`, `theta`, `rho`, their SEs, `pphat`, `pphat_resp`, `pphat_nonresp`, and SEs |
+| `vrpoprob_loglik(...)`                                                    | summed log-likelihood (used by `maxLik`)                                              |
+| `vrpoprob_unpack(xi, J, K, M, R)`                                         | maps the optimizer's free vector to `(α, β, λ, θ, ρ)`                                  |
+| `vrpoprob_xi_to_pphat(...)`                                               | population shares from parameters                                                     |
+| `vrpoprob_xi_to_pphat_resp_nonresp(...)`                                  | population shares split by respondent status                                          |
+| `vrpoprob_delta_se(f, x, V)`                                              | delta-method SEs via `numDeriv::jacobian`                                              |
+
+### `results/` (generated)
+
+| file                          | source                | content                                                  |
+|-------------------------------|-----------------------|----------------------------------------------------------|
+| `results.RData`               | `calc_results.R`      | `res_array[[p_miss]][[outcome]]` for all 8 × 3 fits      |
+| `summary_table.csv`           | `calc_results.R`      | main-text Table 1 (raw vs corrected shares, ρ̂, 95% CI)   |
+| `simulation.RData`            | `simulation_appC.R`   | per-replication Monte Carlo output                       |
+| `simulation_summary.RData`    | `simulation_appC.R`   | cell-level summary statistics                            |
+| `simulation_table1.csv`       | `simulation_appC.R`   | Appendix C Table 1 (naive vs ordinal VRP)                |
+| `simulation_table2.csv`       | `simulation_appC.R`   | Appendix C Table 2 (binary VRP vs ordinal VRP)           |
+| `results_web.RData`           | `calc_results_appD.R` | `res_array_web_noZ`, `res_array_web_withZ`               |
+| `rho_web_comparison.csv`      | `plot_results_appD.R` | side-by-side ρ̂ across the two web specifications        |
+
+### `plots/` (generated)
+
+For each outcome `<outcome>`: `<outcome>_all.pdf` (corrected vs unadjusted), `response_<outcome>_all.pdf` (response distribution by interview rating), `response_comp_<outcome>_all.pdf` (respondents vs nonrespondents). Plus `rating.pdf`, `serious.pdf`. Web-robustness figures live in `plots/web_noZ/`, `plots/web_withZ/`, and `plots/web_rho_comparison.pdf`.
 
 
-#### TABLE OF CONTENTS
+## Runtime
 
-* `run_all.R` - runs all the scripts in the replication, if `calculate_results` is set to `FALSE`, then instead of running `calc_results.R`, results are loaded from `results.RData`
-* `README.md` - this file
+On an M1 Pro 2021 (16 GB RAM):
 
-* `data` folder (this can be downloaded freely from [www.electionstudies.org](https://electionstudies.org/data-center/2024-time-series-study/)):
-  * `anes_timeseries_2024_csv_20250219.csv` dataset from ANES 2025 (version 19 Feb 2025)
-  * `anes_timeseries_2024_userguidecodebook_20250219.pdf` codebook from ANES 2025 (version 19 Feb 2025)
-
-* `code` folder:
-  * `load_data.R` loads the data
-  * `calc_weights.R` calculate sampling weights
-  * `vrpoprob.R` contains the functions necessary for estimating the model
-    * **Main functions**
-      * `vrpoprob_estim(ydata, rdata, xdata, zdata, Nmiss, WXpop, Xpop, WZpop, Zpop)`  Main estimation routine. Returns estimated parameters (`alpha`, `beta`, `lambda`, `theta`, `rho`), standard errors, and estimated population proportions (`pphat`, `pphat_nonresp`, `pphat_resp`).
-    * **Internal / helper functions**
-      * `vrpoprob_pack(alpha, beta, lambda, theta, rho)` – packs parameters into a single vector.  
-      * `vrpoprob_unpack(xi, J, K, M, R)` – unpacks parameter vector into `alpha`, `beta`, `lambda`, `theta`, `rho`.  
-      * `vrpoprob_eval_yrlogp(y, r, ystarhat, rstarhat, lambda, theta, rho)` – evaluates log-probability of `(y, r)` conditional on `(x, z)`.  
-      * `vrpoprob_eval_npunc(beta, WZpop, Zpop)` – evaluates unconditional log-probability of nonresponse.  
-      * `vrpoprob_loglik(xi, ydata, rdata, xdata, zdata, Nmiss, WZpop, Zpop)` – computes the full log-likelihood.  
-      * `vrpoprob_xi_to_pphat(xi, WXpop, Xpop, J, K, M, R)` – computes population outcome proportions from parameters.  
-      * `vrpoprob_delta_se(f, x, V)` – delta-method computation of standard errors.  
-      * `vrpoprob_xi_to_pphat_resp_nonresp(xi, WXpop, Xpop, Zpop, J, K, M, R)` – computes population proportions separately for respondents and nonrespondents.
-  * `calc_results.R` perform all the calculations, replicates all the results used in the paper. It takes about ~5min on M1PRO 2021 16GB RAM laptop.
-  * `plot_results.R` creates all the figures in the paper and saves them to `plots` folder
-
-* `results` folder:
-  * `results.RData` file with results of the replication
-
-* `plots` folder:
-  * `rating.pdf` Distribution of the response variable *Rating of interview* Figure 1
-  * `serious.pdf` Distribution of the response variable *How often you take survey seriously* Figure 2
-  * `response_life_all.pdf`, `life_all.pdf`, `response_comp_life_all.pdf` Figure 3
-  * `response_economy_all.pdf`, `economy_all.pdf`, `response_comp_economy_all.pdf` Figure 4
-  * `response_unemployment_all.pdf`, `unemployment_all.pdf`, `response_comp_unemployment_all.pdf` Figure 5 (Question 3)
-  * `response_media_all.pdf`, `media_all.pdf`, `response_comp_media_all.pdf` Figure 6 (Question 4)
-  * `response_votes_all.pdf`, `votes_all.pdf`, `response_comp_votes_all.pdf` Figure 7 (Question 5)
-  * `response_religion_all.pdf`, `religion_all.pdf`, `response_comp_religion_all.pdf` Figure 8 (Question 6)
-  * `response_abortions_all.pdf`, `abortions_all.pdf`, `response_comp_abortions_all.pdf` Figure 9 (Question 7)
-  * `response_death_all.pdf`, `death_all.pdf`, `response_comp_death_all.pdf` Figure 10 (Question 8)
+- main ANES (`calc_results.R`): ~5 minutes
+- Monte Carlo (`simulation_appC.R`): ~1.5 hours, 9 cores via `mclapply`
+- web robustness (`calc_results_appD.R`): ~6 minutes
 
 
-#### SOFTWARE DEPENDENCIES
-
-All scripts were run under the following environment:
+## Software
 
 ```text
 R version 4.4.2 (2024-10-31)
 Platform: aarch64-apple-darwin20
-Running under: macOS 26.2
-
-Matrix products: default
-BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
-LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
-
-locale:
-[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-
-time zone: Europe/Bratislava
-tzcode source: internal
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
- [1] maxLik_1.5-2.1      miscTools_0.6-28    mnorm_1.2.2         numDeriv_2016.8-1.1 latex2exp_0.9.6    
- [6] RColorBrewer_1.1-3  lubridate_1.9.4     forcats_1.0.0       stringr_1.5.1       dplyr_1.1.4        
-[11] purrr_1.0.4         tidyr_1.3.1         tibble_3.2.1        tidyverse_2.0.0     scales_1.3.0       
-[16] ggtext_0.1.2        ggplot2_3.5.2       readr_2.1.5         tictoc_1.2.1       
-
-loaded via a namespace (and not attached):
- [1] sandwich_3.1-1      generics_0.1.3      xml2_1.3.8          stringi_1.8.4       lattice_0.22-6     
- [6] hms_1.1.3           digest_0.6.37       magrittr_2.0.3      grid_4.4.2          timechange_0.3.0   
-[11] httr_1.4.7          cli_3.6.4           crayon_1.5.3        rlang_1.1.5         commonmark_1.9.5   
-[16] bit64_4.6.0-1       munsell_0.5.1       withr_3.0.2         parallel_4.4.2      tools_4.4.2        
-[21] tzdb_0.5.0          colorspace_2.1-1    hpa_1.3.3           vctrs_0.6.5         R6_2.6.1           
-[26] zoo_1.8-13          lifecycle_1.0.4     bit_4.6.0           vroom_1.6.5         pkgconfig_2.0.3    
-[31] RcppParallel_5.1.10 pillar_1.10.1       gtable_0.3.6        glue_1.8.0          Rcpp_1.0.14        
-[36] xfun_0.51           tidyselect_1.2.1    rstudioapi_0.17.1   farver_2.1.2        labeling_0.4.3     
-[41] compiler_4.4.2      markdown_1.13       gridtext_0.1.5    
 ```
 
+Packages used (auto-installed by `load_data.R` if missing): `tictoc`, `readr`, `ggplot2`, `ggtext`, `scales`, `dplyr`, `tidyr`, `RColorBrewer`, `latex2exp`, `mnorm`, `parallel`, `maxLik`, `numDeriv`, `MASS`.
 
-#### REFERENCES
 
-* American National Election Studies. 2025. ANES 2024 Time Series Study Preliminary Release: Combined Pre-Election and Post-Election Data [dataset and documentation]. April 30, 2025 
+## References
+
+American National Election Studies. 2025. *ANES 2024 Time Series Study Preliminary Release: Combined Pre-Election and Post-Election Data* (April 30, 2025).
