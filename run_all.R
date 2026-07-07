@@ -2,9 +2,10 @@
 # Set working directory to REPLICATION PACKAGE/ before running.
 # Toggle sections as needed.
 
-run_main  <- TRUE
-run_appC  <- TRUE
-run_appD  <- TRUE
+run_main     <- TRUE
+run_appC     <- TRUE
+run_appD     <- TRUE
+run_ols_diag <- TRUE
 
 
 source("code/vrpoprob.R")
@@ -30,6 +31,11 @@ if (run_appC) {
 if (run_appD) {
   source("code/calc_results_appD.R") # --> results/results_web.RData
   source("code/plot_results_appD.R")
+}
+
+# Appendix D: OLS diagnostics for IW_ONLINE
+if (run_ols_diag) {
+  source("code/table_ols_diagnostics.R") # --> results/table_ols_diagnostics.csv
 }
 
 

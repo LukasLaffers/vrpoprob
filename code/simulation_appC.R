@@ -46,8 +46,12 @@ R <- length(theta_true)
 
 
 # population grid ---------------------------------------------------------
+# Use the same dummy-coded design as the application so that the calibrated
+# alpha_core / beta_core (taken from the life-satisfaction fit) are conformable
+# with the population design matrix.
 
-Xpop_s  <- data.matrix(Xpop)
+covars  <- c("married", "black", "gender_spouse", "education")
+Xpop_s  <- vrpoprob_build_designs(Xpop[, covars], Xpop[, covars], covars)$pop
 Wpop_s <- Wpop
 
 

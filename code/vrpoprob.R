@@ -10,6 +10,35 @@ library(mnorm)
 library(maxLik)
 
 
+# design matrix helper ----------------------------------------------------
+
+# Build aligned design matrices for the individual data and the population grid.
+# Categorical covariates (gender_spouse, education, online) enter as dummy
+# indicators rather than as cardinal numbers; married and black are already 0/1
+# indicators and enter as single columns. Factor levels are taken from the union
+# of the population grid and the individual data so the two design matrices have
+# identical columns in identical order. This replaces the earlier specification
+# that entered gender_spouse (coded -1/1/2) and education (1-5) as cardinal terms,
+# which misspecified their effect in both equations and biased the estimated
+# selection correlation rho.
+.vrp_categorical <- c("gender_spouse", "education", "online")
+
+vrpoprob_build_designs <- function(ind_df, pop_df, vars) {
+  ind_df <- as.data.frame(ind_df)
+  pop_df <- as.data.frame(pop_df)
+  for (v in intersect(vars, .vrp_categorical)) {
+    lev <- sort(unique(c(pop_df[[v]], ind_df[[v]])))
+    ind_df[[v]] <- factor(ind_df[[v]], levels = lev)
+    pop_df[[v]] <- factor(pop_df[[v]], levels = lev)
+  }
+  form <- stats::as.formula(paste("~", paste(vars, collapse = " + ")))
+  list(
+    ind = stats::model.matrix(form, ind_df)[, -1, drop = FALSE],
+    pop = stats::model.matrix(form, pop_df)[, -1, drop = FALSE]
+  )
+}
+
+
 # main functions ----------------------------------------------------------
 
 vrpoprob_estim = function(ydata, rdata, xdata, zdata, Nmiss, Wpop, Xpop, Zpop) {
@@ -51,10 +80,18 @@ vrpoprob_estim = function(ydata, rdata, xdata, zdata, Nmiss, Wpop, Xpop, Zpop) {
   sols <- lapply(rho_starts, function(r0) {
     xi0 <- xi0_base
     xi0[rho_idx] <- r0
-    maxLik(objfun, start=xi0, method="BFGS", control=list(printLevel=0))
+    tryCatch(maxLik(objfun, start=xi0, method="BFGS", control=list(printLevel=0)),
+             error = function(e) NULL)
   })
 
-  sol       <- sols[[which.max(vapply(sols, logLik, numeric(1)))]]
+  # robustly pick the best start, skipping any that failed to produce a valid fit
+  ll_safe <- function(s) {
+    v <- tryCatch(as.numeric(logLik(s)), error = function(e) NA_real_)
+    if (length(v) != 1L || !is.finite(v)) -Inf else v
+  }
+  lls <- vapply(sols, ll_safe, numeric(1))
+  if (all(!is.finite(lls))) stop("all optimization starts failed")
+  sol       <- sols[[which.max(lls)]]
   converged <- (returnCode(sol) == 0)
   if (!converged) warning("no convergence")
 
@@ -311,8 +348,14 @@ vrpoprob_xi_to_pphat_resp_nonresp = function(xi, Wpop, Xpop, Zpop, J, K, M, R){
                            nrow = nrow(P_resp),
                            ncol = ncol(P_resp))
   
-  pphat_nonresp = colSums(P_nonresp * Wpop)
-  pphat_resp    = colSums(P_resp    * Wpop)
+  # weights for aggregation
+  w_nonresp = as.vector(Pr_nonresp) * Wpop
+  w_nonresp = w_nonresp / sum(w_nonresp)
+  w_resp = as.vector(Pr_resp) * Wpop
+  w_resp = w_resp / sum(w_resp)
+  
+  pphat_nonresp = colSums(P_nonresp * w_nonresp)
+  pphat_resp    = colSums(P_resp    * w_resp)
 
   list(pphat_nonresp = pphat_nonresp,
        pphat_resp    = pphat_resp)

@@ -117,7 +117,7 @@ for (iOutcome in seq_along(outcomes)) {
                                  "Est50" = "Non-response 50%", "Est65" = "Non-response 65%",
                                  "Est80" = "Non-response 80%")) +
     labs(title = paste0(
-           "<span style='font-size:25pt;'>", titles[[iOutcome]], "</span>",
+           "<span style='font-size:25pt;'>Unadjusted and corrected proportions</span>",
            "<br>(<span style='color:#E69F00;'>ρ = ", round(res50[[iOutcome]]$rho, 3), "</span>, ",
            "<span style='color:#009E73;'>ρ = ",      round(res65[[iOutcome]]$rho, 3), "</span>, ",
            "<span style='color:#D55E00;'>ρ = ",      round(res80[[iOutcome]]$rho, 3), "</span>)"),
@@ -155,7 +155,7 @@ for (iOutcome in seq_along(outcomes)) {
     scale_y_continuous(labels = scales::percent_format()) +
     scale_fill_manual(values = brewer.pal(n = n_levels, name = "Blues"), labels = levels_r) +
     scale_x_discrete(breaks = seq_along(levels_x), labels = levels_x) +
-    labs(title = titles[[iOutcome]], x = "", y = "",
+    labs(title = "Outcome distribution across interview ratings", x = "", y = "",
          fill = "Rating of the interview\n(response variable)") +
     theme_minimal(base_size = 14) +
     theme(plot.title  = element_text(size = 25),
@@ -178,15 +178,6 @@ for (iOutcome in seq_along(outcomes)) {
   df_long <- pivot_longer(df_plot, cols = -category,
                           names_to = "Group", values_to = "Probability")
 
-  df_faceted <- bind_rows(
-    df_long |> mutate(Panel = "Overall"),
-    df_long |> filter(Group == "Unconditional")  |> mutate(Panel = "Unconditional"),
-    df_long |> filter(Group == "Nonrespondents") |> mutate(Panel = "Nonrespondents"),
-    df_long |> filter(Group == "Respondents")    |> mutate(Panel = "Respondents")
-  ) %>%
-    mutate(Panel = factor(Panel,
-                          levels = c("Overall", "Unconditional", "Nonrespondents", "Respondents")))
-
   df_se <- data.frame(
     category       = factor(seq_along(res$pphat_se)),
     Unconditional  = res$pphat_se,
@@ -195,9 +186,9 @@ for (iOutcome in seq_along(outcomes)) {
   ) %>%
     pivot_longer(cols = -category, names_to = "Group", values_to = "SE")
 
-  df_faceted <- df_faceted |> left_join(df_se, by = c("category", "Group"))
+  df_long <- df_long |> left_join(df_se, by = c("category", "Group"))
 
-  p <- ggplot(df_faceted, aes(x = category, y = Probability, fill = Group)) +
+  p <- ggplot(df_long, aes(x = category, y = Probability, fill = Group)) +
     geom_col(position = position_dodge(width = 0.8), width = 0.7) +
     geom_errorbar(aes(ymin = pmax(Probability - SE, 0), ymax = Probability + SE),
                   position = position_dodge(width = 0.8), width = 0.25) +
@@ -206,13 +197,12 @@ for (iOutcome in seq_along(outcomes)) {
                                  "Nonrespondents"= "firebrick")) +
     scale_x_discrete(labels = outcome_levels[[iOutcome]]) +
     scale_y_continuous(
-      limits = c(0, max(df_faceted$Probability + df_faceted$SE, na.rm = TRUE) * 1.15),
+      limits = c(0, max(df_long$Probability + df_long$SE, na.rm = TRUE) * 1.15),
       expand = expansion(mult = c(0, 0)),
       labels = label_percent(scale = 100)
     ) +
-    facet_wrap(~Panel, nrow = 2, ncol = 2) +
     labs(title = paste0(
-           "<span style='font-size:25pt;'>", titles[[iOutcome]], "</span>",
+           "<span style='font-size:25pt;'>Respondents vs. nonrespondents</span>",
            "<br><span style='color:#000000;'>(ρ = ", round(res$rho, 3), ", 65% missing)</span>"),
          x = "Outcome category", y = "Population proportion", fill = NULL) +
     theme_minimal(base_size = 14) +

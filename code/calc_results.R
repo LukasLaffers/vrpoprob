@@ -1,5 +1,9 @@
 tic("Full computation")
 
+# Covariates entering the latent indices. Categorical covariates are expanded
+# to dummies inside vrpoprob_build_designs(); see code/vrpoprob.R.
+covars <- c("married", "black", "gender_spouse", "education")
+
 res_array <- list()
 
 for (miss_p in miss_props) {
@@ -18,15 +22,17 @@ for (miss_p in miss_props) {
 
     message("    Sample size NN = ", NN, "; Nmiss used = ", Nmiss_here)
 
+    des <- vrpoprob_build_designs(dff4[, covars], Xpop[, covars], covars)
+
     res <- vrpoprob_estim(
       ydata = outcome_here,
       rdata = dff4$int_rating,
-      xdata = data.matrix(dff4 %>% dplyr::select(married, black, gender_spouse, education)),
-      zdata = data.matrix(dff4 %>% dplyr::select(married, black, gender_spouse, education)),
+      xdata = des$ind,
+      zdata = des$ind,
       Nmiss = Nmiss_here,
       Wpop = Wpop,
-      Xpop  = data.matrix(Xpop),
-      Zpop  = data.matrix(Zpop)
+      Xpop  = des$pop,
+      Zpop  = des$pop
     )
 
     res_array[[as.character(miss_p)]][[iOutcome]] <- res

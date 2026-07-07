@@ -26,29 +26,37 @@ for (miss_p in miss_props) {
     NN           <- nrow(dff4)
     Nmiss_here   <- round(NN * miss_p / (1 - miss_p))
 
-    xdata <- data.matrix(dff4 %>% dplyr::select(married, black, gender_spouse, education))
-    zdata <- data.matrix(dff4 %>% dplyr::select(married, black, gender_spouse, education, online))
+    xvars <- c("married", "black", "gender_spouse", "education")
+    zvars <- c("married", "black", "gender_spouse", "education", "online")
+
+    # no-Z spec: x = z = demographics, evaluated on the demographics grid
+    des_noZ <- vrpoprob_build_designs(dff4[, xvars], Xpop_web[, xvars], xvars)
 
     res_array_web_noZ[[as.character(miss_p)]][[iOutcome]] <- vrpoprob_estim(
       ydata = outcome_here,
       rdata = dff4$int_rating,
-      xdata = xdata,
-      zdata = xdata,
+      xdata = des_noZ$ind,
+      zdata = des_noZ$ind,
       Nmiss = Nmiss_here,
       Wpop = Wpop_web,
-      Xpop  = data.matrix(Xpop_web),
-      Zpop  = data.matrix(Xpop_web)
+      Xpop  = des_noZ$pop,
+      Zpop  = des_noZ$pop
     )
+
+    # with-Z spec: z adds the 'online' exclusion restriction; both grids are
+    # evaluated on the finer demographics x online grid (Zpop_withZ).
+    des_x <- vrpoprob_build_designs(dff4[, xvars], Zpop_withZ[, xvars], xvars)
+    des_z <- vrpoprob_build_designs(dff4[, zvars], Zpop_withZ[, zvars], zvars)
 
     res_array_web_withZ[[as.character(miss_p)]][[iOutcome]] <- vrpoprob_estim(
       ydata = outcome_here,
       rdata = dff4$int_rating,
-      xdata = xdata,
-      zdata = zdata,
+      xdata = des_x$ind,
+      zdata = des_z$ind,
       Nmiss = Nmiss_here,
       Wpop = Wpop_withZ,
-      Xpop  = data.matrix(Zpop_withZ)[, 1:4, drop = FALSE],
-      Zpop  = data.matrix(Zpop_withZ)
+      Xpop  = des_x$pop,
+      Zpop  = des_z$pop
     )
   }
 }
