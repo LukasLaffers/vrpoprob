@@ -4,7 +4,7 @@
 
 Replication package for *Correcting for Nonignorable Nonresponse Bias in Ordinal Observational Survey Data*.
 
-Version 1.2 (June 2026).
+Version 1.2 (July 2026).
 
 The raw data is from the 2024 ANES Time Series Study, available at
 [electionstudies.org](https://electionstudies.org/data-center/2024-time-series-study/).
